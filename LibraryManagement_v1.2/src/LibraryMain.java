@@ -3,8 +3,9 @@ import java.util.*;
 /**
  * 도서 관리 시스템의 메인 클래스
  * <p>사용자 인터페이스(CLI)를 제공하며, DB 연결하여 권한에 따른 메뉴 출력 및 사용자 입력을 처리합니다.</p>
+ * <p>2026년 5월 18일 시작</p
  *
- * @author Su Man Nam
+ * @author 최재훈
  * @version 1.2
  */
 public class LibraryMain {
@@ -151,8 +152,10 @@ public class LibraryMain {
     /**
      * 도서 정보의 수정 및 삭제를 처리하는 UI입니다.
      * <p>ID를 통해 도서를 조회하고, 선택에 따라 제목/저자 수정 또는 삭제를 수행합니다.</p>
-     *
+     * <p>수정과 삭제의 효율화를 위해 같은 기능으로 개발(26.05.20; 최재훈)</p>
      * @see LibraryManager#deleteBook(int)
+     *
+     * @see <a href="https://github.com/ywaltz/LibraryManagement/issues/1">Issue #1: 한 책 삭제 시 DB에서 해당 책이 삭제 안됨</a>
      */
     private static void editOrDeleteUI() {
         System.out.println("\n[도서 수정 및 삭제]");
@@ -189,6 +192,8 @@ public class LibraryMain {
                     book.setTitle(newTitle);
                     System.out.println("[결과] 제목이 수정되었습니다.");
                 }
+                manager.saveChanges();
+
             }
             case 2 -> {
                 System.out.print("- 새 저자 입력: ");
@@ -197,21 +202,23 @@ public class LibraryMain {
                     book.setAuthor(newAuthor);
                     System.out.println("[결과] 저자명이 수정되었습니다.");
                 }
+                manager.saveChanges();
+
             }
             case 3 -> {
                 manager.deleteBook(id);
+                //삭제 쿼리를 작성
                 System.out.println("[결과] 삭제되었습니다.");
-
 
             }
         }
-
-        // DB 저장
-        manager.saveChanges();
     }
+
+    // DB 저장
 
     /**
      * 도서 대출 입력을 처리합니다.
+     *
      * @see LibraryManager#borrowBook(int)
      */
     private static void borrowBookUI() {
@@ -231,6 +238,7 @@ public class LibraryMain {
 
     /**
      * 도서 반납 입력을 처리합니다.
+     *
      * @see LibraryManager#returnBook(int)
      */
     private static void returnBookUI() {
@@ -293,6 +301,7 @@ public class LibraryMain {
      * 현재 시스템의 도서 대출 현황을 상세히 조회합니다.
      * <p>대출 중인 도서들에 대해 도서 정보와 현재 대출자(member_id)의 정보를 대조하여 출력합니다.</p>
      * * @see LibraryManager#getAllBooks()
+     *
      * @see <a href="https://github.com/sumannam/Java/issues/23">Issue #23: 대출자 정보 매핑 확인</a>
      */
     private static void showLoanStatusUI() {
