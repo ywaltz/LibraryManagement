@@ -54,7 +54,7 @@ public class LibraryMain {
             System.out.print("비밀번호: ");
             String pw = sc.nextLine();
 
-            //숫자 입력 추가
+            //로그인 첫글자 숫자 입력 오류 개선 개발
             if (!id.isEmpty() && Character.isDigit(id.charAt(0))) {
                 System.out.println("다시 입력하세요");
                 continue;
