@@ -54,6 +54,12 @@ public class LibraryMain {
             System.out.print("비밀번호: ");
             String pw = sc.nextLine();
 
+            //로그인 첫글자 숫자 입력 오류 개선 개발
+            if (!id.isEmpty() && Character.isDigit(id.charAt(0))) {
+                System.out.println("다시 입력하세요");
+                continue;
+            }
+
             if (manager.login(id, pw)) return true;
             System.out.println("[오류] 아이디 또는 비밀번호가 틀렸습니다.");
         }
