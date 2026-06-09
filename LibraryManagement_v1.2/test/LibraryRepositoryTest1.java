@@ -4,15 +4,12 @@ import org.junit.jupiter.api.Test;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.HashMap;
 import java.util.Map;
-
-import static org.junit.jupiter.api.Assertions.*;
-import org.junit.jupiter.api.*;
-import java.sql.*;
-import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 class LibraryRepositoryTest1 {
@@ -107,6 +104,20 @@ class LibraryRepositoryTest1 {
 
         // 3. 권한(Type)도 맞는지 확인해보면 좋습니다.
         assertEquals("ADMIN", user.getRole(), "사용자 권한이 'ADMIN'이어야 합니다.");
+    }
+
+    @Test
+    @DisplayName("SQL Injection 공격 문자열로 로그인 우회가 불가능해야 한다")
+    void sqlInjectionLoginShouldFail() {
+        // Given: 존재하는 관리자 아이디와 SQL Injection 공격 문자열을 준비한다
+        String id = "admin";
+        String attackPassword = "' OR '1'='1";
+
+        // When: 공격 문자열을 비밀번호로 입력하여 로그인을 시도한다
+        User user = repository.loadUser(id, attackPassword);
+
+        // Then: PreparedStatement 적용 후에는 로그인 우회가 실패하여 null이 반환되어야 한다
+        assertNull(user, "SQL Injection 공격 문자열로 로그인에 성공하면 안 됩니다.");
     }
 
 
