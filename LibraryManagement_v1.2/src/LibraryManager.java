@@ -173,21 +173,66 @@ public class LibraryManager {
         return bookMap;
     }
 
+    /**
+     * 서버 상태 점검에 사용할 IP 주소 또는 도메인 입력값을 검증합니다.
+     * <p>OS Command Injection에 사용될 수 있는 특수문자를 차단하고,
+     * IP 주소 또는 도메인에 필요한 문자만 허용합니다.</p>
+     *
+     * @param input 사용자가 입력한 서버 주소
+     * @return 안전한 입력값이면 true, 위험한 입력값이면 false
+     */
+    public boolean isSafeServerAddress(String input) {
+        if (input == null || input.isBlank()) {
+            return false;
+        }
+
+        if (input.contains(";") || input.contains("&") || input.contains("|")
+                || input.contains("`") || input.contains("$")
+                || input.contains(">") || input.contains("<")) {
+            return false;
+        }
+
+        return input.matches("^[a-zA-Z0-9.-]+$");
+    }
+
+    /**
+     * Mac 환경 기준으로 서버 상태를 점검합니다.
+     * <p>ProcessBuilder를 사용하여 명령어와 인자를 분리하고,
+     * 입력값 검증을 통해 OS Command Injection 위험을 줄입니다.</p>
+     *
+     * @param ip 확인할 IP 주소 또는 도메인
+     */
     public void checkServerStatus(String ip) {
+        if (!isSafeServerAddress(ip)) {
+            System.out.println("[보안 경고] 허용되지 않은 서버 주소 형식입니다.");
+            return;
+        }
+
         try {
-            // [수정] cmd.exe /c 를 앞에 붙여서 쉘이 명령어를 해석하게 만듭니다.
-            String command = "cmd.exe /c ping -n 1 " + ip;
+            ProcessBuilder pb = new ProcessBuilder("ping", "-c", "1", ip);
 
-            System.out.println("[시스템 실행 명령어]: " + command);
+            System.out.println("[시스템 실행 명령어]: ping -c 1 " + ip);
 
-            Process process = Runtime.getRuntime().exec(command);
-            // 한글 깨짐 방지를 위해 EUC-KR 유지
-            BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream(), "EUC-KR"));
+            Process process = pb.start();
+
+            BufferedReader reader = new BufferedReader(
+                    new InputStreamReader(process.getInputStream())
+            );
+
+            BufferedReader errorReader = new BufferedReader(
+                    new InputStreamReader(process.getErrorStream())
+            );
 
             String line;
             while ((line = reader.readLine()) != null) {
                 System.out.println(line);
             }
+
+            while ((line = errorReader.readLine()) != null) {
+                System.out.println(line);
+            }
+
+            process.waitFor();
         } catch (Exception e) {
             System.out.println("[오류] 진단 중 예외 발생: " + e.getMessage());
         }
